@@ -8,14 +8,12 @@ function init() {
   const blocks = [];
 
   function request() {
-    API.request(blocks[0].value, blocks[1].value, response);
+    API.request(blocks[0].curency, blocks[1].curency, response);
   }
 
   function response(rates) {
-    const rate = rates[blocks[1].value];
+    const rate = rates[blocks[1].curency];
     blocks[1].input.value = rate * blocks[0].input.value;
-    console.log(rates);
-    console.log(blocks[1].input.value, blocks[0].input.value);
   }
 
   ["RUB", "USD"].forEach((currency, index) => {
@@ -28,20 +26,19 @@ function init() {
     blocks.push(currencyInput);
   });
     
-    const btnReverse = document.querySelector('#btn-revers');
-    btnReverse.addEventListener(`click`, () => {
-       const val0 = blocks[0].value;
-       const val1 = blocks[1].value;
-       blocks[0].setValue(val1);
-       blocks[1].setValue(val0);
-    });
-    
-    
+  const btnReverse = document.querySelector('#btn-revers');
+  btnReverse.addEventListener(`click`, () => {
+      const curency0 = blocks[0].curency;
+      const curency1 = blocks[1].curency;
+      blocks[0].setCurency(curency1);
+      blocks[1].setCurency(curency0);
+      request();
+  });
 }
 
 class CurrencyInput {
-  constructor(inputId, currencyList, defaultValue, request) {
-    this.value = defaultValue;
+  constructor(inputId, currencyList, defaultCurency, request) {
+    this.curency = defaultCurency;
 
     const block = document.querySelector(`#${inputId}`);
     const select = block.querySelector("select");
@@ -50,7 +47,7 @@ class CurrencyInput {
 
 
     select.addEventListener("change", () => {
-      this.value = select.value;
+      this.curency = select.value;
       block.querySelector(".selected").classList.remove("selected");
       select.classList.add("selected");
       request();
@@ -60,7 +57,7 @@ class CurrencyInput {
       btn.addEventListener("click", () => {
         block.querySelector(".selected").classList.remove("selected");
         btn.classList.add("selected");
-        this.value = btn.innerText;
+        this.curency = btn.innerText;
         request();
       });
     });
@@ -73,7 +70,10 @@ class CurrencyInput {
     });
 
     const input = block.querySelector("input");
-    this.input = input;
+
+    input.addEventListener('blur', () => {
+      request();
+    });
 
     function alerts(value) {
       const alertInner = block.querySelector(".alert-inner");
@@ -99,27 +99,27 @@ class CurrencyInput {
 
     input.addEventListener("change", () => {
       this.value = input.value;
-      console.log(alerts(this.value));
     });
 
-    this.container = block;
-    this.btns = btns;
-    this.select = select
+    this.container  = block;
+    this.input      = input;
+    this.btns       = btns;
+    this.select     = select
   }
 
-  setValue(value){
-      const btn = [...this.btns].find(btn => btn.innerText === value);
-      if(btn){
-          btn.click();
-      } else {
-          const options = this.select.querySelectorAll('option');
-          const option = [...options].find(option => option.value === value);
-          option.selected = true;
-          this.container.querySelector('.selected').classList.remove('selected');
-          this.select.classList.add('selected');
-      }
-      this.value = value;
-
+  setCurency(curency){
+    this.container.querySelector('.selected').classList.remove('selected');
+      
+    const btn = [...this.btns].find(btn => btn.innerText === curency);
+    if(btn){
+      btn.classList.add('selected');
+    } else {
+      const options = this.select.querySelectorAll('option');
+      const option = [...options].find(option => option.value === curency);
+      option.selected = true;
+      this.select.classList.add('selected');
+    }
+    this.curency = curency;
   }
 }
 
